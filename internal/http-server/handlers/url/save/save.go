@@ -13,6 +13,7 @@ import (
 	"url-shortener/internal/storage"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@latest -destination=mocks/mock_urlsaver.go -package=mocks . URLSaver
 type URLSaver interface {
 	SaveURL(urlToSave string, alias string) (int64, error)
 }

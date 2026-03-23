@@ -12,6 +12,7 @@ import (
 	"url-shortener/internal/storage"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@latest -destination=mocks/mock_urldeleter.go -package=mocks . URLDeleter
 type URLDeleter interface {
 	DeleteURL(alias string) error
 }

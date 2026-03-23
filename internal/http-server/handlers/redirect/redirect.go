@@ -11,6 +11,7 @@ import (
 	"url-shortener/internal/storage"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@latest -destination=mocks/mock_urlgetter.go -package=mocks . URLGetter
 type URLGetter interface {
 	GetURL(alias string) (string, error)
 }

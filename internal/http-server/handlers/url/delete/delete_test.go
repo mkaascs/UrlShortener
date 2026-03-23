@@ -1,4 +1,4 @@
-package redirect
+package delete
 
 import (
 	"context"
@@ -10,32 +10,29 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"url-shortener/internal/http-server/handlers/redirect/mocks"
+	"url-shortener/internal/http-server/handlers/url/delete/mocks"
 	"url-shortener/internal/logging"
 	"url-shortener/internal/storage"
 )
 
-func Test_RedirectHandler(t *testing.T) {
+func Test_DeleteHandler(t *testing.T) {
 	tests := []struct {
 		name           string
 		alias          string
-		mockUrl        string
 		mockErr        error
 		expectedStatus int
 		callMock       bool
 	}{
 		{
-			name:           "success redirect",
+			name:           "success delete",
 			alias:          "mkaascs",
-			mockUrl:        "/github.com/mkaascs",
 			mockErr:        nil,
-			expectedStatus: http.StatusTemporaryRedirect,
+			expectedStatus: http.StatusOK,
 			callMock:       true,
 		},
 		{
-			name:           "alias not found",
-			alias:          "alias",
-			mockUrl:        "",
+			name:           "alias does not exist",
+			alias:          "mkaascs",
 			mockErr:        storage.ErrURLNotFound,
 			expectedStatus: http.StatusNotFound,
 			callMock:       true,
@@ -43,7 +40,6 @@ func Test_RedirectHandler(t *testing.T) {
 		{
 			name:           "internal server error",
 			alias:          "mkaascs",
-			mockUrl:        "",
 			mockErr:        errors.New("some error"),
 			expectedStatus: http.StatusInternalServerError,
 			callMock:       true,
@@ -51,7 +47,6 @@ func Test_RedirectHandler(t *testing.T) {
 		{
 			name:           "empty alias",
 			alias:          "",
-			mockUrl:        "",
 			mockErr:        nil,
 			expectedStatus: http.StatusBadRequest,
 			callMock:       false,
@@ -66,23 +61,23 @@ func Test_RedirectHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			urlGetterMock := mocks.NewMockURLGetter(ctrl)
+			mockUrlDeleter := mocks.NewMockURLDeleter(ctrl)
 
 			if test.callMock {
-				urlGetterMock.EXPECT().
-					GetURL(test.alias).
-					Return(test.mockUrl, test.mockErr).
+				mockUrlDeleter.EXPECT().
+					DeleteURL(test.alias).
+					Return(test.mockErr).
 					Times(1)
 			} else {
-				urlGetterMock.EXPECT().
-					GetURL(gomock.Any()).
+				mockUrlDeleter.EXPECT().
+					DeleteURL(gomock.Any()).
 					Times(0)
 			}
 
-			handler := New(logging.NewPlugLogger(), urlGetterMock)
+			handler := New(logging.NewPlugLogger(), mockUrlDeleter)
 
-			target := fmt.Sprintf("/%s", test.alias)
-			req, err := http.NewRequest(http.MethodGet, target, nil)
+			target := fmt.Sprintf("/url/%s", test.alias)
+			req, err := http.NewRequest(http.MethodDelete, target, nil)
 			require.NoError(t, err)
 
 			if test.alias != "" {
@@ -96,9 +91,6 @@ func Test_RedirectHandler(t *testing.T) {
 			handler.ServeHTTP(rr, req)
 
 			require.Equal(t, test.expectedStatus, rr.Code)
-			if test.expectedStatus == http.StatusTemporaryRedirect {
-				require.Equal(t, test.mockUrl, rr.Header().Get("Location"))
-			}
 		})
 	}
 }

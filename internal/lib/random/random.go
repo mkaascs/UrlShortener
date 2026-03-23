@@ -13,6 +13,10 @@ const (
 )
 
 func NewRandomString(length int) string {
+	if length <= 0 {
+		return ""
+	}
+
 	result := make([]byte, length)
 
 	for i, cache, remain := length-1, rand.Int63(), letterIdxMax; i >= 0; {
