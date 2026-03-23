@@ -56,7 +56,7 @@ func main() {
 			cfg.User: cfg.Password,
 		}))
 
-		r.Post("/", save.New(lg, storage))
+		r.Post("/", save.New(lg, storage, cfg.AliasLen))
 		r.Delete("/{alias}", delete.New(lg, storage))
 	})
 

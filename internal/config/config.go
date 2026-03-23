@@ -14,6 +14,7 @@ type Config struct {
 	Env                string `yaml:"env" env-default:"local"`
 	DbConnectionString string `yaml:"db_connection_string" env-required:"true"`
 	HttpServer         `yaml:"http_server"`
+	Service            `yaml:"service"`
 }
 
 type HttpServer struct {
@@ -22,6 +23,10 @@ type HttpServer struct {
 	IdleTimeout time.Duration `yaml:"idle_timeout"`
 	User        string        `yaml:"user" env-required:"true"`
 	Password    string        `yaml:"password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
+}
+
+type Service struct {
+	AliasLen int `yaml:"alias_len" env-default:"6"`
 }
 
 func MustLoad() *Config {

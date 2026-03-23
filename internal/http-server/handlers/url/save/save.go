@@ -13,9 +13,6 @@ import (
 	"url-shortener/internal/storage"
 )
 
-// TODO: move to config
-const aliasLength = 6
-
 type URLSaver interface {
 	SaveURL(urlToSave string, alias string) (int64, error)
 }
@@ -43,7 +40,7 @@ type Response struct {
 // @Failure 409 {object} Response
 // @Failure 422 {object} Response
 // @Router /url [post]
-func New(log *slog.Logger, saver URLSaver) http.HandlerFunc {
+func New(log *slog.Logger, saver URLSaver, aliasLen int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const fn = "handlers.url.save.New"
 		log = log.With(
@@ -73,7 +70,7 @@ func New(log *slog.Logger, saver URLSaver) http.HandlerFunc {
 
 		alias := request.Alias
 		if alias == "" {
-			alias = random.NewRandomString(aliasLength)
+			alias = random.NewRandomString(aliasLen)
 		}
 
 		id, err := saver.SaveURL(request.URL, alias)
