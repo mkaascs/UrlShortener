@@ -12,7 +12,9 @@ import (
 
 type Config struct {
 	Env                string `yaml:"env" env-default:"local"`
-	DbConnectionString string `yaml:"db_connection_string" env-required:"true"`
+	DbConnectionString string `yaml:"db_connection_string"`
+	DbHost             string `yaml:"db_host" env-required:"true"`
+	DbPassword         string `yaml:"-" env-required:"true" env:"MYSQL_ROOT_PASSWORD"`
 	HttpServer         `yaml:"http_server"`
 	Service            `yaml:"service"`
 }
@@ -39,9 +41,7 @@ func MustLoad() *Config {
 }
 
 func Load() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, fmt.Errorf("failed to load .env file: %s", err)
-	}
+	_ = godotenv.Load()
 
 	cfgPath := os.Getenv("CONFIG_PATH")
 	if cfgPath == "" {
@@ -56,6 +56,12 @@ func Load() (*Config, error) {
 	if err := cleanenv.ReadConfig(cfgPath, &cfg); err != nil {
 		return nil, fmt.Errorf("unable to read config: %s", err)
 	}
+
+	cfg.DbConnectionString = fmt.Sprintf(
+		"root:%s@tcp(%s)/URLShortener?charset=utf8&parseTime=True",
+		cfg.DbPassword,
+		cfg.DbHost,
+	)
 
 	return &cfg, nil
 }
