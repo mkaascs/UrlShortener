@@ -13,13 +13,15 @@ import (
 type Config struct {
 	Env                string `yaml:"env" env-default:"local"`
 	DbConnectionString string `yaml:"db_connection_string" env-required:"true"`
-	HttpServerConfig   `yaml:"http_server"`
+	HttpServer         `yaml:"http_server"`
 }
 
-type HttpServerConfig struct {
+type HttpServer struct {
 	Address     string        `yaml:"address" address-default:"localhost:5050"`
 	Timeout     time.Duration `yaml:"timeout"`
 	IdleTimeout time.Duration `yaml:"idle_timeout"`
+	User        string        `yaml:"user" env-required:"true"`
+	Password    string        `yaml:"password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
 }
 
 func MustLoad() *Config {

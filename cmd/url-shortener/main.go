@@ -51,8 +51,15 @@ func main() {
 		httpSwagger.URL("/swagger/doc.json"),
 	))
 
-	router.Post("/url", save.New(lg, storage))
-	router.Delete("/url/{alias}", delete.New(lg, storage))
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			cfg.User: cfg.Password,
+		}))
+
+		r.Post("/", save.New(lg, storage))
+		r.Delete("/{alias}", delete.New(lg, storage))
+	})
+
 	router.Get("/{alias}", redirect.New(lg, storage))
 
 	lg.Info("starting server", slog.String("address", cfg.Address))
@@ -60,9 +67,9 @@ func main() {
 	server := http.Server{
 		Addr:         cfg.Address,
 		Handler:      router,
-		ReadTimeout:  cfg.HttpServerConfig.Timeout,
-		WriteTimeout: cfg.HttpServerConfig.Timeout,
-		IdleTimeout:  cfg.HttpServerConfig.IdleTimeout,
+		ReadTimeout:  cfg.HttpServer.Timeout,
+		WriteTimeout: cfg.HttpServer.Timeout,
+		IdleTimeout:  cfg.HttpServer.IdleTimeout,
 	}
 
 	if err := server.ListenAndServe(); err != nil {
